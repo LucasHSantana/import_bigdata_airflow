@@ -1,0 +1,37 @@
+{
+    "sources":{
+        "station":{            
+            "mapping":{
+                "source_name_list": ["id","name","lat","long","dock_count","city","installation_date"],
+                "field_type_list": ["INT", "VARCHAR(50)", "FLOAT", "FLOAT", "INT", "VARCHAR(20)", "DATE"]
+            }
+        },
+        "status":{
+            "mapping":{
+                "source_name_list": ["station_id","bikes_available","docks_available","time"],
+                "field_type_list": ["INT", "INT", "INT", "DATE"]
+            }
+        },
+        "trip":{
+            "mapping":{
+                "source_name_list": ["id","duration","start_date","start_station_name","start_station_id",
+                    "end_date","end_station_name","end_station_id","bike_id","subscription_type","zip_code"],
+                "field_type_list": ["INT", "INT", "DATE", "VARCHAR(50)", "INT", 
+                    "DATE", "VARCHAR(50)", "INT", "INT", "VARCHAR(15)", "VARCHAR(20)"]
+            }
+        },
+        "weather":{
+            "mapping":{
+                "source_name_list": ["date","max_temperature_f","mean_temperature_f","min_temperature_f",
+                    "max_dew_point_f","mean_dew_point_f","min_dew_point_f","max_humidity","mean_humidity",
+                    "min_humidity","max_sea_level_pressure_inches","mean_sea_level_pressure_inches",
+                    "min_sea_level_pressure_inches","max_visibility_miles","mean_visibility_miles",
+                    "min_visibility_miles","max_wind_Speed_mph","mean_wind_speed_mph","max_gust_speed_mph",
+                    "precipitation_inches","cloud_cover","events","wind_dir_degrees","zip_code"],
+                "field_type_list": ["DATE", "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT", 
+                    "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT",
+                    "FLOAT", "FLOAT", "FLOAT", "FLOAT", "FLOAT", "VARCHAR(20)", "FLOAT", "VARCHAR(20)"]
+            }
+        }
+    }
+}

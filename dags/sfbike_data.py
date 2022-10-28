@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, date
 import requests
 import shutil
 import logging
+import json
 
 from airflow import DAG
 
@@ -14,6 +15,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data_files')
 DAG_DIR = os.path.join(BASE_DIR, 'dags')
 CONFIG_DIR = os.path.join(DAG_DIR, 'data_configs')
+
+with open(os.path.join(CONFIG_DIR, 'sfbike.json')) as json_file:
+    config = json.load(json_file)
 
 URL = 'https://drive.google.com/u/1/uc?id=1fQ_PPxGCN5nFyHa-nwHjhC_hgz1TO8SR&export=download&confirm=t'
 
@@ -69,3 +73,39 @@ with DAG(
     extract_files = extract(URL)
 
     start >> extract_files >> extraction_done
+    
+    @task(task_id='weather_correction')
+    def correct_weather():
+        path = os.path.join(DATA_DIR, str(date.today()))
+        with open(os.path.join(path, 'weather.csv'), 'r') as original_file:
+            with open(os.path.join(path, 'weather2.csv'), 'w') as new_file:
+                for line in original_file:
+                    line = line.replace('T', '0')
+                    new_file.write(line)
+
+        os.remove(os.path.join(path, 'weather.csv'))
+        os.rename(os.path.join(path, 'weather2.csv'), os.path.join(path, 'weather.csv'))
+
+    weather_correction = correct_weather()
+
+    extraction_done >> weather_correction
+
+    for source in config['sources']:
+        load_database = PostgresOperator(
+            task_id=f'create_and_load_{source}',
+            postgres_conn_id='postgis',
+            sql='sql/load_raw_template.sql',
+            params={
+                "raw_schema": "raw",
+                "data_dir": DATA_DIR,
+                "table_name": source,
+                "source_field_list": list(zip(config['sources'][source]['mapping']['source_name_list'], 
+                    config['sources'][source]['mapping']['field_type_list'])),
+                "source_name_list": config['sources'][source]['mapping']['source_name_list']
+            }        
+        )
+
+        if source == 'weather':
+           weather_correction >> load_database >> end
+        else:
+            extraction_done >> load_database >> end
